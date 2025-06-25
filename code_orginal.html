@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>محاسبه‌گر سهم زمین</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --text: #111827;
+      --box: #fff;
+      --primary: #0ea5e9;
+      --shadow: #cbd5e1;
+    }
+
+    .dark-mode {
+      --bg: #1e293b;
+      --text: #f8fafc;
+      --box: #334155;
+      --primary: #38bdf8;
+      --shadow: #475569;
+    }
+
+    body {
+      font-family: 'Vazirmatn';
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      font-family: Vazirmatn;
+      padding: 2rem;
+      margin: 2rem;
+      color: var(--text);
+    }
+
+    .p-title {
+      text-decoration: underline;
+      text-align: center;
+      font-family: Vazirmatn;
+      font-weight: bold;
+      font-size: 28px;
+      background: linear-gradient(90deg, #9945FF, #0ea5e9, #14f195);
+      background-size: 400% 400%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      animation: animateGradient 3s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    @keyframes animateGradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .p-title:hover {
+      background: linear-gradient(90deg, #b366ff, #9a00ff, #0746f8);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      transition: background 0.8s ease;
+    }
+
+    @media print {
+      .actions,
+      .dark-toggle {
+        display: none !important;
+      }
+      .p-print {
+        display: block;
+        color: gray;
+        font-family: Vazirmatn;
+        font-weight: bold;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+      }
+      .p-title {
+        display: none !important;
+      }
+    }
+
+    @media screen {
+      .p-print {
+        display: none !important;
+      }
+      .p-title {
+        display: block !important;
+      }
+    }
+
+    .container {
+      max-width: 88%;
+      margin: auto;
+      background: var(--box);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px var(--shadow);
+    }
+
+    .form-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    label {
+      min-width: 160px;
+      font-weight: 700;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--shadow);
+      font-size: 1rem;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      direction: rtl;
+    }
+
+    th,
+    td {
+      padding: 0.75rem;
+      border: 1px solid var(--shadow);
+      text-align: center;
+    }
+
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      margin: 0.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      font-family: Vazirmatn;
+      font-weight: bold;
+    }
+
+    button:hover {
+      opacity: 0.85;
+      color: var(--primary);
+      background-color: var(--box);
+      border: 2px solid var(--primary);
+    }
+
+    #unitInputs {
+      margin-top: 1rem;
+      overflow-x: auto;
+    }
+
+    .responsive-table {
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+
+    /* Toggle Dark Mode Button */
+    .dark-toggle {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      font-size: 1.6rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--primary);
+      z-index: 1000;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      width: 300px;
+      height: 100%;
+      background: var(--box);
+      box-shadow: -3px 0 10px rgba(0, 0, 0, 0.3);
+      transition: right 0.3s ease-in-out;
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .sidebar.active {
+      right: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .sidebar-header input {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--shadow);
+    }
+
+    .clear-btn {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .toggle-btn {
+      position: fixed;
+      right: 20px;
+      top: 20px;
+      z-index: 1100;
+      padding: 10px 15px;
+      font-size: 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .history-list {
+      max-height: calc(100vh - 150px);
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: var(--box);
+      border: 1px solid var(--shadow);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      padding: 10px;
+      position: relative;
+    }
+
+    .history-item .delete-entry {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      color: red;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .history-item-content {
+      padding-right: 25px;
+    }
+
+    .history-item-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .history-item-details {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      .form-group {
+        flex-direction: column;
+        align-items: stretch;
+        margin: 1rem;
+      }
+
+      label {
+        min-width: auto;
+        width: 100%;
+      }
+
+      input[type="number"],
+      input[type="text"],
+      button {
+        width: 100%;
+        font-size: 1rem;
+      }
+
+      canvas#myChart {
+        max-width: 100% !important;
+      }
+
+      .dark-toggle {
+        font-size: 1.2rem;
+        border: none;
+        position: absolute;
+        top: 0.1rem;
+        max-width: fit-content;
+        max-height: fit-content;
+        z-index: 0;
+      }
+
+      .dark-toggle:hover {
+        background: none;
+        border: none;
+        opacity: 50%;
+        z-index: 0;
+      }
+
+      table th,
+      table td {
+        font-size: 0.85rem;
+        padding: 0.3rem;
+      }
+
+      .sidebar {
+        width: 85%;
+        right: -85%;
+      }
+
+      .toggle-btn {
+        right: 10px;
+        top: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="dark-toggle" vazirmatn="تغییر حالت روشن/تاریک" onclick="toggleDarkMode()">🌙/☀️</button>
+  <!-- Toggle Button -->
+  <button id="toggleSidebar" class="toggle-btn">☰ تاریخچه محاسبات</button>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <h2>تاریخچه محاسبات</h2>
+      <input type="text" id="searchHistory" placeholder="جستجو..." />
+      <button id="clearHistory" class="clear-btn">🗑 پاک کردن همه</button>
+    </div>
+    <div id="historyList" class="history-list">
+      <!-- Dynamically added history entries will appear here -->
+    </div>
+  </div>
+
+  <h1>محاسبه‌گر سهم زمین و بودجه (قدرالســهم) </h1>
+
+  <div class="container">
+    <p class="p-title">محاسبه قدرالســهم زمین ، آپارتمان  | پویان </p>
+    <p class="p-print">محاسبه قدرالســهم زمین ، آپارتمان  | پویان </p>
+
+    <div class="form-group">
+      <label for="landArea">متراژ زمین:</label>
+      <input type="number" id="landArea" placeholder="مثلاً 300" min="0" />
+    </div>
+
+    <div class="form-group">
+      <label for="pricePerMeter">قیمت هر متر مربع:</label>
+      <input type="text" id="pricePerMeter" placeholder="مثلاً 70,000,000" oninput="formatInput(this)" />
+    </div>
+
+    <div class="form-group">
+      <label for="totalBudget">بودجه کل خریدار:</label>
+      <input type="text" id="totalBudget" placeholder="مثلاً 4,000,000,000" oninput="formatInput(this)" />
+    </div>
+
+    <hr />
+
+    <div class="form-group">
+      <label for="coef_parking">ضریب پارکینگ:</label>
+      <input type="number" id="coef_parking" step="0.01" value="0.5" min="0" />
+    </div>
+
+    <div class="form-group">
+      <label for="coef_storage">ضریب انباری:</label>
+      <input type="number" id="coef_storage" step="0.01" value="0.3" min="0" />
+    </div>
+
+    <div class="form-group">
+      <label for="coef_balcony">ضریب بالکن:</label>
+      <input type="number" id="coef_balcony" step="0.01" value="0.2" min="0" />
+    </div>
+
+    <hr />
+
+    <div class="form-group">
+      <label for="unitCount">تعداد واحدها:</label>
+      <input type="number" id="unitCount" min="1" placeholder="مثلاً 3" />
+      <button type="button" onclick="generateUnits()">ثبت واحدها</button>
+    </div>
+
+    <div id="unitInputs" class="responsive-table" aria-live="polite"></div>
+
+    <div class="actions">
+      <button type="button" onclick="calculate()">محاسبه</button>
+      <button type="button" onclick="exportPDF()">📄 خروجی PDF</button>
+      <button type="button" onclick="exportExcel()">📊 خروجی Excel</button>
+      <button type="button" onclick="clearData()">🗑 پاک کردن داده‌ها</button>
+    </div>
+
+    <div id="results" class="responsive-table" aria-live="polite"></div>
+
+    <canvas id="myChart" style="max-width:40%; margin:2rem;"></canvas>
+  </div>
+
+  <script>
+    let isLoadingFromHistory = false;
+
+    // حالت تاریک و ذخیره‌سازی
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // فرمت ورودی عددی (فارسی)
+    function formatInput(input) {
+      let value = input.value.replace(/[^\d]/g, '');
+      input.value = Number(value).toLocaleString('en-US');
+    }
+
+    function parseNumber(str) {
+      return parseFloat(str.replace(/,/g, '')) || 0;
+    }
+
+    // ایجاد جدول ورودی واحدها
+    function generateUnits() {
+      const count = parseInt(document.getElementById('unitCount').value);
+      const container = document.getElementById('unitInputs');
+      container.innerHTML = '';
+
+      if (!count || count <= 0) {
+        alert('لطفاً تعداد واحد معتبر وارد کنید');
+        return;
+      }
+
+      let table = `<table>
+        <thead>
+          <tr>
+            <th>واحد</th>
+            <th>نام مالک</th>
+            <th>متراژ مفید</th>
+            <th>پارکینگ</th>
+            <th>انباری</th>
+            <th>بالکن</th>
+          </tr>
+        </thead><tbody>`;
+
+      for (let i = 1; i <= count; i++) {
+        table += `<tr>
+          <td>${i}</td>
+          <td><input type="text" id="owner_${i}" placeholder="نام مالک" vazirmatn="نام مالک واحد ${i}" /></td>
+          <td><input type="number" id="useful_${i}" min="0" step="0.01" vazirmatn="متراژ مفید واحد ${i}" /></td>
+          <td><input type="number" id="parking_${i}" min="0" step="0.01" vazirmatn="پارکینگ واحد ${i}" /></td>
+          <td><input type="number" id="storage_${i}" min="0" step="0.01" vazirmatn="انباری واحد ${i}" /></td>
+          <td><input type="number" id="balcony_${i}" min="0" step="0.01" vazirmatn="بالکن واحد ${i}" /></td>
+        </tr>`;
+      }
+      table += '</tbody></table>';
+      container.innerHTML = table;
+
+      // بارگذاری مقادیر ذخیره شده قبلی
+      loadUnitsFromLocalStorage(count);
+    }
+
+    // بارگذاری اطلاعات واحدها از localStorage
+    function loadUnitsFromLocalStorage(count) {
+      const data = JSON.parse(localStorage.getItem('landShareData') || '{}');
+      if (!data.units || data.units.length !== count) return;
+
+      for (let i = 1; i <= count; i++) {
+        const unit = data.units[i - 1];
+        if (!unit) continue;
+        document.getElementById(`owner_${i}`).value = unit.owner || '';
+        document.getElementById(`useful_${i}`).value = unit.useful || '';
+        document.getElementById(`parking_${i}`).value = unit.parking || '';
+        document.getElementById(`storage_${i}`).value = unit.storage || '';
+        document.getElementById(`balcony_${i}`).value = unit.balcony || '';
+      }
+    }
+
+    // محاسبه سهم ها و نمایش نتایج
+    function calculate() {
+      // ورودی‌های اصلی
+      const landArea = parseNumber(document.getElementById('landArea').value);
+      const pricePerMeter = parseNumber(document.getElementById('pricePerMeter').value);
+      const totalBudget = parseNumber(document.getElementById('totalBudget').value);
+      const coef_parking = parseFloat(document.getElementById('coef_parking').value) || 0;
+      const coef_storage = parseFloat(document.getElementById('coef_storage').value) || 0;
+      const coef_balcony = parseFloat(document.getElementById('coef_balcony').value) || 0;
+      const count = parseInt(document.getElementById('unitCount').value);
+
+      if (!landArea || !pricePerMeter || !totalBudget || !count || count <= 0) {
+        alert('لطفاً همه مقادیر اولیه را به درستی وارد کنید');
+        return;
+      }
+
+      // جمع مساحت وزنی کل
+      let totalWeightedArea = 0;
+      const units = [];
+
+      // خواندن داده‌های واحدها
+      for (let i = 1; i <= count; i++) {
+        const owner = document.getElementById(`owner_${i}`).value.trim() || `واحد ${i}`;
+        const useful = parseFloat(document.getElementById(`useful_${i}`).value) || 0;
+        const parking = parseFloat(document.getElementById(`parking_${i}`).value) || 0;
+        const storage = parseFloat(document.getElementById(`storage_${i}`).value) || 0;
+        const balcony = parseFloat(document.getElementById(`balcony_${i}`).value) || 0;
+
+        const weightedArea = useful + parking * coef_parking + storage * coef_storage + balcony * coef_balcony;
+
+        units.push({ owner, useful, parking, storage, balcony, weightedArea });
+        totalWeightedArea += weightedArea;
+      }
+
+      // محاسبه درصد سهم و ارزش هر واحد
+      for (const u of units) {
+        u.sharePercent = (u.weightedArea / totalWeightedArea) * 100;
+        u.shareValue = (u.sharePercent / 100) * totalBudget;
+      }
+
+      // ذخیره داده‌ها در LocalStorage
+      const calculationData = {
+        landArea,
+        pricePerMeter,
+        totalBudget,
+        coef_parking,
+        coef_storage,
+        coef_balcony,
+        count,
+        units,
+        timestamp: new Date().toISOString()
+      };
+      
+      localStorage.setItem('landShareData', JSON.stringify(calculationData));
+      
+      // ذخیره در تاریخچه
+      if (!isLoadingFromHistory) {
+        saveToHistory(calculationData);
+        }
+
+      
+      // نمایش نتایج در جدول
+      displayResults(units, landArea, pricePerMeter, totalBudget, totalWeightedArea);
+      drawChart(units);
+    }
+
+    // نمایش نتایج
+    function displayResults(units, landArea, pricePerMeter, totalBudget, totalWeightedArea) {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      let sumUseful = 0, sumParking = 0, sumStorage = 0, sumBalcony = 0;
+      units.forEach(u => {
+        sumUseful += u.useful;
+        sumParking += u.parking;
+        sumStorage += u.storage;
+        sumBalcony += u.balcony;
+      });
+
+      let html = `<table>
+        <thead>
+          <tr>
+            <th>واحد</th>
+            <th>نام مالک</th>
+            <th>متراژ مفید (متر مربع)</th>
+            <th>پارکینگ (متر مربع)</th>
+            <th>انباری (متر مربع)</th>
+            <th>بالکن (متر مربع)</th>
+            <th>مساحت وزنی (متر مربع)</th>
+            <th>درصد سهم (%)</th>
+            <th>ارزش سهم (تومان)</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      units.forEach((u, i) => {
+        html += `<tr>
+          <td>${i + 1}</td>
+          <td>${u.owner}</td>
+          <td>${u.useful.toLocaleString('fa-IR')}</td>
+          <td>${u.parking.toLocaleString('fa-IR')}</td>
+          <td>${u.storage.toLocaleString('fa-IR')}</td>
+          <td>${u.balcony.toLocaleString('fa-IR')}</td>
+          <td>${u.weightedArea.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td>${u.sharePercent.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</td>
+          <td>${Math.round(u.shareValue).toLocaleString('fa-IR')}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      html += `
+      <table class="summary-table">
+        <thead>
+          <hr>
+          <h2>خلاصه وضعیت ملکی شما : </h2>
+          <tr>
+            <th>عنوان</th>
+            <th>مقدار</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>مجموع متراژ مفید</td>
+            <td>${sumUseful.toLocaleString('fa-IR')} متر مربع</td>
+          </tr>
+          <tr>
+            <td>مجموع پارکینگ</td>
+            <td>${sumParking.toLocaleString('fa-IR')} متر مربع</td>
+          </tr>
+          <tr>
+            <td>مجموع انباری</td>
+            <td>${sumStorage.toLocaleString('fa-IR')} متر مربع</td>
+          </tr>
+          <tr>
+            <td>مجموع بالکن</td>
+            <td>${sumBalcony.toLocaleString('fa-IR')} متر مربع</td>
+          </tr>
+          <tr>
+            <td>مساحت زمین</td>
+            <td>${landArea.toLocaleString('fa-IR')} متر مربع</td>
+          </tr>
+          <tr>
+            <td>قیمت هر متر مربع زمین</td>
+            <td>${pricePerMeter.toLocaleString('fa-IR')} تومان</td>
+          </tr>
+          <tr>
+            <td>بودجه کل پروژه</td>
+            <td>${totalBudget.toLocaleString('fa-IR')} تومان</td>
+          </tr>
+          <tr>
+            <td>مجموع مساحت وزنی</td>
+            <td>${totalWeightedArea.toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} متر مربع</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+      container.innerHTML = html;
+    }
+
+    // رسم نمودار درصد سهم
+    function drawChart(units) {
+      const ctx = document.getElementById('myChart').getContext('2d');
+
+      if (window.myPieChart) {
+        window.myPieChart.destroy();
+      }
+
+      const labels = units.map((u, i) => `واحد ${i + 1} (${u.owner})`);
+      const data = units.map(u => u.sharePercent);
+
+      window.myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            label: 'درصد سهم هر واحد',
+            data,
+            backgroundColor: generateColors(data.length),
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { enabled: true },
+          }
+        }
+      });
+    }
+
+    // تولید رنگ‌های تصادفی زیبا برای نمودار
+    function generateColors(count) {
+      const baseColors = [
+        '#4e79a7', '#f28e2b', '#e15759', '#76b7b2',
+        '#59a14f', '#edc949', '#af7aa1', '#ff9da7',
+        '#9c755f', '#bab0ab'
+      ];
+      let colors = [];
+      for (let i = 0; i < count; i++) {
+        colors.push(baseColors[i % baseColors.length]);
+      }
+      return colors;
+    }
+
+    // ذخیره تاریخچه محاسبه
+    function saveToHistory(data) {
+      let history = JSON.parse(localStorage.getItem('calculationHistory') || '[]');
+      
+      // اضافه کردن تاریخ فارسی به داده‌ها
+      const now = new Date();
+      const persianDate = now.toLocaleString('fa-IR');
+      
+      const historyItem = {
+        ...data,
+        displayDate: persianDate,
+        timestamp: now.getTime()
+      };
+      
+      history.unshift(historyItem);
+      
+      // محدود کردن تاریخچه به 20 مورد آخر
+      if (history.length > 20) {
+        history = history.slice(0, 20);
+      }
+      
+      localStorage.setItem('calculationHistory', JSON.stringify(history));
+      renderHistory();
+    }
+
+    // نمایش تاریخچه محاسبات
+    function renderHistory() {
+      const historyContainer = document.getElementById('historyList');
+      let history = JSON.parse(localStorage.getItem('calculationHistory') || '[]');
+
+      if (history.length === 0) {
+        historyContainer.innerHTML = '<div class="history-item"><div class="history-item-content">تاریخچه‌ای وجود ندارد</div></div>';
+        return;
+      }
+
+      historyContainer.innerHTML = '';
+      
+      history.forEach((item, idx) => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        
+        const totalValue = item.units.reduce((sum, unit) => sum + unit.shareValue, 0);
+        
+        historyItem.innerHTML = `
+          <div class="history-item-content">
+            <div class="history-item-title">محاسبه ${idx + 1} - ${item.displayDate}</div>
+            <div class="history-item-details">
+              <div>تعداد واحدها: ${item.count}</div>
+              <div>مساحت زمین: ${item.landArea.toLocaleString('fa-IR')} متر مربع</div>
+              <div>بودجه کل: ${item.totalBudget.toLocaleString('fa-IR')} تومان</div>
+            </div>
+          </div>
+          <button class="delete-entry" onclick="deleteHistoryItem(${idx})">✖</button>
+          <button class="load-btn" onclick="loadHistoryItem(${idx})">بارگذاری</button>
+        `;
+        
+        historyContainer.appendChild(historyItem);
+      });
+    }
+
+    // حذف یک مورد از تاریخچه
+    function deleteHistoryItem(index) {
+      let history = JSON.parse(localStorage.getItem('calculationHistory') || '[]');
+      history.splice(index, 1);
+      localStorage.setItem('calculationHistory', JSON.stringify(history));
+      renderHistory();
+    }
+
+    // بارگذاری یک مورد از تاریخچه
+    function loadHistoryItem(index) {
+      let history = JSON.parse(localStorage.getItem('calculationHistory') || '[]');
+      const item = history[index];
+      
+      if (!item) return;
+
+      isLoadingFromHistory = true;
+
+      // پر کردن فرم با داده‌های تاریخچه
+      document.getElementById('landArea').value = item.landArea;
+      document.getElementById('pricePerMeter').value = item.pricePerMeter.toLocaleString('en-US');
+      document.getElementById('totalBudget').value = item.totalBudget.toLocaleString('en-US');
+      document.getElementById('coef_parking').value = item.coef_parking;
+      document.getElementById('coef_storage').value = item.coef_storage;
+      document.getElementById('coef_balcony').value = item.coef_balcony;
+      document.getElementById('unitCount').value = item.count;
+      
+      // تولید واحدها
+      generateUnits();
+      
+      // پر کردن داده‌های واحدها بعد از یک تاخیر کوتاه
+      setTimeout(() => {
+        item.units.forEach((unit, i) => {
+          const idx = i + 1;
+          document.getElementById(`owner_${idx}`).value = unit.owner || '';
+          document.getElementById(`useful_${idx}`).value = unit.useful || '';
+          document.getElementById(`parking_${idx}`).value = unit.parking || '';
+          document.getElementById(`storage_${idx}`).value = unit.storage || '';
+          document.getElementById(`balcony_${idx}`).value = unit.balcony || '';
+        });
+        
+        // محاسبه نتایج
+        calculate();
+        isLoadingFromHistory = false;
+
+      }, 100);
+    }
+
+    // پاک کردن داده‌ها و رفرش صفحه
+    function clearData() {
+      if (confirm('آیا مطمئن هستید که می‌خواهید تمامی داده‌ها پاک شود؟')) {
+        localStorage.removeItem('landShareData');
+        location.reload();
+      }
+    }
+
+    function updateTotalBudget() {
+      const landArea = parseNumber(document.getElementById('landArea').value);
+      const pricePerMeter = parseNumber(document.getElementById('pricePerMeter').value);
+
+      if (landArea && pricePerMeter) {
+          const totalBudget = landArea * pricePerMeter;
+          document.getElementById('totalBudget').value = totalBudget.toLocaleString('en-US');
+      }
+    }
+
+    function updatePricePerMeter() {
+      const landArea = parseNumber(document.getElementById('landArea').value);
+      const totalBudget = parseNumber(document.getElementById('totalBudget').value);
+
+      if (landArea && totalBudget) {
+          const pricePerMeter = totalBudget / landArea;
+          document.getElementById('pricePerMeter').value = pricePerMeter.toLocaleString('en-US');
+      }
+    }
+
+    // اضافه کردن event listener به ورودی‌ها
+    document.getElementById('landArea').addEventListener('input', updateTotalBudget);
+    document.getElementById('pricePerMeter').addEventListener('input', updateTotalBudget);
+    document.getElementById('totalBudget').addEventListener('input', updatePricePerMeter);
+
+    // خروجی PDF با jsPDF
+    function exportPDF() {
+      const container = document.getElementById('results');
+      if (!container || !container.innerHTML.trim()) {
+        alert('لطفاً ابتدا محاسبه را انجام دهید');
+        return;
+      }
+
+      const element = document.querySelector(".container");
+
+      // حذف margin و padding بالا برای جلوگیری از فاصله خالی در PDF
+      element.style.margin = "10";
+      element.style.padding = "10";
+      element.style.width = "100%";
+      element.style.height = "100%";
+
+      const opt = {
+        margin: [0, 0, 0, 0],
+        filename: 'land-share.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          scrollY: 0,
+          scrollX: 0,
+          useCORS: true
+        },
+        jsPDF: {
+          unit: 'pt',
+          format: 'a4',
+          orientation: 'landscape'
+        }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    // خروجی Excel با SheetJS (xlsx)
+    function exportExcel() {
+      const data = JSON.parse(localStorage.getItem('landShareData') || '{}');
+      if (!data.units) {
+        alert('لطفاً ابتدا محاسبه را انجام دهید');
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      // آماده‌سازی داده‌ها برای شیت
+      const ws_data = [
+        ['واحد', 'نام مالک', 'متراژ مفید', 'پارکینگ', 'انباری', 'بالکن', 'مساحت وزنی', 'درصد سهم', 'ارزش سهم (تومان)']
+      ];
+
+      data.units.forEach((u, i) => {
+        ws_data.push([
+          i + 1,
+          u.owner,
+          u.useful,
+          u.parking,
+          u.storage,
+          u.balcony,
+          u.weightedArea.toFixed(2),
+          u.sharePercent.toFixed(2),
+          u.shareValue.toFixed(0),
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+      // تنظیمات سبک (رنگ و فونت) به صورت ساده
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cell_address]) continue;
+
+          if (R === 0) {
+            // سطر عنوان با رنگ پس‌زمینه و رنگ متن سفید
+            ws[cell_address].s = {
+              fill: { fgColor: { rgb: "FF000080" } },
+              font: { color: { rgb: "FFFFFFFF" }, bold: true }
+            };
+          } else {
+            // سلول‌های داده با رنگ متن مشکی و فونت معمولی
+            ws[cell_address].s = {
+              font: { color: { rgb: "FF000000" } }
+            };
+          }
+        }
+      }
+
+      XLSX.utils.book_append_sheet(wb, ws, "نتایج سهم زمین");
+
+      XLSX.writeFile(wb, "land_share_result.xlsx");
+    }
+
+    // مدیریت سایدبار تاریخچه
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const clearBtn = document.getElementById("clearHistory");
+    const searchInput = document.getElementById("searchHistory");
+
+    // Toggle sidebar
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+    });
+
+    // Clear all history
+    clearBtn.addEventListener("click", () => {
+      if (confirm('آیا مطمئن هستید که می‌خواهید تمام تاریخچه پاک شود؟')) {
+        localStorage.removeItem("calculationHistory");
+        renderHistory();
+      }
+    });
+
+    // Search history
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      document.querySelectorAll(".history-item").forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(query) ? "block" : "none";
+      });
+    });
+
+    // بارگذاری اولیه تاریخچه
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHistory();
+      
+      // بارگذاری داده‌های ذخیره شده
+      const data = JSON.parse(localStorage.getItem('landShareData') || '{}');
+      if (!data.units) return;
+      
+      document.getElementById('landArea').value = data.landArea || '';
+      document.getElementById('pricePerMeter').value = data.pricePerMeter ? Number(data.pricePerMeter).toLocaleString('en-US') : '';
+      document.getElementById('totalBudget').value = data.totalBudget ? Number(data.totalBudget).toLocaleString('en-US') : '';
+      document.getElementById('coef_parking').value = data.coef_parking || 0.5;
+      document.getElementById('coef_storage').value = data.coef_storage || 0.3;
+      document.getElementById('coef_balcony').value = data.coef_balcony || 0.2;
+      document.getElementById('unitCount').value = data.count || '';
+
+      if (data.count) {
+        generateUnits();
+        setTimeout(() => {
+          calculate();
+        }, 100);
+      }
+    });
+
+
+  
+    
+  </script>
+</body>
+</html>
